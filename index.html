@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TaskMate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+:root{
+  --blue:#4A90D9;--blue-dark:#1E5FA6;--blue-light:#E8F2FC;
+  --red:#E04B4A;--red-bg:#FEF0F0;--red-text:#A02D2D;
+  --orange:#EF9F27;--orange-bg:#FEF5E7;--orange-text:#7A4A08;
+  --green:#5B9B1E;--green-bg:#EBF5DC;--green-text:#2C5610;
+  --ink:#111827;--ink-2:#374151;--ink-3:#6B7280;--ink-4:#9CA3AF;
+  --line:#E5EAF2;--surface:#F5F7FB;--white:#fff;
+  --rs:8px;--rm:12px;--rl:16px;--rxl:20px;
+  --ss:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+  --sm:0 4px 12px rgba(0,0,0,.08),0 1px 3px rgba(0,0,0,.05);
+  --font:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;
+}
+.dark-mode{
+  --blue:#5B9FE0;--blue-dark:#7AB8EC;--blue-light:#1A2D42;
+  --red:#E06B6A;--red-bg:#2D1515;--red-text:#F08080;
+  --orange:#F0B040;--orange-bg:#2D2010;--orange-text:#F0C060;
+  --green:#70B830;--green-bg:#1A2810;--green-text:#90D050;
+  --ink:#F0F4FF;--ink-2:#C8D0E0;--ink-3:#8090A8;--ink-4:#506070;
+  --line:#1E2A38;--surface:#101820;--white:#141E2A;
+  --ss:0 1px 3px rgba(0,0,0,.3),0 1px 2px rgba(0,0,0,.2);
+  --sm:0 4px 12px rgba(0,0,0,.3),0 1px 3px rgba(0,0,0,.2);
+}
+.dark-mode .phone{box-shadow:0 0 0 1px rgba(255,255,255,.07),0 24px 64px rgba(0,0,0,.5)}
+.dark-mode .search-box{color:var(--ink)}
+.dark-mode .finput{color:var(--ink)}
+.dark-mode .mfinput{color:var(--ink)}
+.dark-mode .modal-bg{background:rgba(0,0,0,.7)}
+.dark-mode .btn-primary{background:#1E2D40;color:var(--blue-dark)}
+.dark-mode .mbtn-c{background:var(--surface);color:var(--ink-3);border-color:var(--line)}
+
+/* Dark mode toggle */
+.dm-toggle{position:fixed;top:18px;right:18px;z-index:999;background:#fff;border:1px solid #dde;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;color:#333;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(0,0,0,.12);transition:all .2s;}
+.dark-mode .dm-toggle{background:#1E2A38;border-color:#2A3A4E;color:#C8D0E0}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:var(--font);background:#EAEFF7;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 16px}
+button,input,select{font-family:inherit}
+input,select{outline:none}
+button{cursor:pointer;border:none;background:none}
+
+.page{display:flex;flex-direction:column;align-items:center;gap:14px}
+.screen-label{font-size:12px;font-weight:500;color:#7A8BB5;letter-spacing:.04em;text-transform:uppercase}
+.phone{width:320px;border-radius:44px;background:var(--white);box-shadow:0 0 0 1px rgba(0,0,0,.10),0 24px 64px rgba(0,0,0,.18);overflow:hidden;position:relative;}
+.status-bar{height:44px;background:var(--blue);display:flex;align-items:center;justify-content:space-between;padding:0 20px;}
+.status-time{font-size:13px;font-weight:600;color:#fff}
+.status-icons{display:flex;align-items:center;gap:5px;color:#fff;font-size:12px}
+.screen{display:none;flex-direction:column;min-height:620px;max-height:780px;overflow:hidden}
+.screen.active{display:flex}
+
+/* Topbar */
+.topbar{background:var(--blue);padding:12px 18px 14px;display:flex;align-items:center;gap:10px;position:relative;flex-shrink:0;}
+.topbar-title{position:absolute;left:50%;transform:translateX(-50%);font-size:15px;font-weight:600;color:#fff;white-space:nowrap;}
+.back-btn{display:flex;align-items:center;gap:4px;font-size:13px;font-weight:500;color:rgba(255,255,255,.9);z-index:1;}
+.back-btn i{font-size:16px}
+.notif-btn{position:relative;margin-left:auto;z-index:1;padding:2px}
+.notif-dot{width:8px;height:8px;background:#FF4545;border:2px solid var(--blue);border-radius:50%;position:absolute;top:-1px;right:-1px;display:none;}
+.avatar{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.22);font-size:12px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;margin-left:10px;z-index:1;border:1.5px solid rgba(255,255,255,.3);}
+
+/* Nav */
+.nav-bar{background:var(--white);border-top:1px solid var(--line);display:flex;flex-shrink:0;padding:8px 0 12px;}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:500;color:var(--ink-4);padding:0 4px;}
+.ni i{font-size:20px;line-height:1}
+.ni.active{color:var(--blue)}
+
+/* Login */
+.login-bg{background:linear-gradient(160deg,#2A6CC4 0%,#4A90D9 60%,#5BA3E8 100%);flex:1;padding:36px 24px 32px;display:flex;flex-direction:column;align-items:center;}
+.logo-ring{width:72px;height:72px;border-radius:22px;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.32);display:flex;align-items:center;justify-content:center;margin-bottom:14px;box-shadow:0 8px 24px rgba(0,0,0,.15);}
+.logo-ring i{font-size:32px;color:#fff}
+.app-name{font-size:20px;font-weight:700;color:#fff;margin-bottom:6px;letter-spacing:-.02em}
+.app-sub{font-size:12px;color:rgba(255,255,255,.65);margin-bottom:28px}
+.lform{width:100%;display:flex;flex-direction:column;gap:12px}
+.field-group{display:flex;flex-direction:column;gap:5px}
+.field-label{font-size:11px;font-weight:600;color:rgba(255,255,255,.75);letter-spacing:.04em;text-transform:uppercase}
+.field-input{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);border-radius:var(--rs);padding:11px 13px;font-size:13px;color:#fff;transition:border-color .15s,background .15s;}
+.field-input::placeholder{color:rgba(255,255,255,.4)}
+.field-input:focus{background:rgba(255,255,255,.22);border-color:rgba(255,255,255,.55)}
+.forgot{font-size:11px;color:rgba(255,255,255,.55);text-align:right;cursor:pointer;margin-top:-4px}
+.btn-primary{width:100%;padding:12px;border-radius:var(--rs);background:#fff;color:var(--blue-dark);font-size:14px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.18);transition:transform .12s;}
+.btn-primary:active{transform:scale(.98)}
+.btn-outline{width:100%;padding:11px;border-radius:var(--rs);background:transparent;color:#fff;font-size:13px;font-weight:500;border:1px solid rgba(255,255,255,.35);}
+.switch-hint{font-size:12px;color:rgba(255,255,255,.6);text-align:center}
+.switch-hint span{color:#fff;font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.err-msg{font-size:11px;color:#FFCDD2;display:none;margin-top:-6px}
+.err-msg.show{display:block}
+.pass-wrap{position:relative;width:100%}
+.pass-wrap .field-input{width:100%;padding-right:38px}
+.eye-btn{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:rgba(255,255,255,.6);font-size:16px;padding:2px;}
+.strength-bar{display:flex;gap:4px;margin-top:6px}
+.strength-bar span{flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.2);transition:background .3s}
+.strength-label{font-size:10px;font-weight:600;margin-top:4px;color:rgba(255,255,255,.6);min-height:14px}
+.strength-reqs{margin-top:6px;display:flex;flex-direction:column;gap:3px}
+.req{font-size:10px;color:rgba(255,255,255,.5);display:flex;align-items:center;gap:5px}
+.req.met{color:#90EE90}
+.req i{font-size:11px}
+
+/* Home */
+.home-body{background:var(--surface);flex:1;display:flex;flex-direction:column;overflow:hidden}
+.greeting{font-size:18px;font-weight:700;color:#fff;letter-spacing:-.02em}
+.greeting-sub{font-size:12px;color:rgba(255,255,255,.7);margin-top:2px}
+.search-wrap{padding:14px 16px 8px;position:relative}
+.search-box{background:var(--white);border:1px solid var(--line);border-radius:var(--rm);padding:9px 12px 9px 36px;font-size:13px;color:var(--ink);width:100%;box-shadow:var(--ss);}
+.search-icon{position:absolute;left:28px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--ink-4);pointer-events:none}
+.filter-row{padding:0 10px 10px;display:flex;gap:4px;overflow-x:auto;flex-wrap:nowrap}
+.filter-row::-webkit-scrollbar{display:none}
+.chip{padding:5px 10px;border-radius:20px;font-size:10px;font-weight:600;border:1px solid var(--line);background:var(--white);color:var(--ink-3);white-space:nowrap;flex-shrink:0;cursor:pointer;box-shadow:var(--ss);}
+.chip.active{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 2px 8px rgba(74,144,217,.3)}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 16px 10px}
+.stat-card{background:var(--white);border-radius:var(--rm);border:1px solid var(--line);padding:11px 14px;box-shadow:var(--ss);}
+.stat-num{font-size:22px;font-weight:700;letter-spacing:-.03em;color:var(--blue-dark)}
+.stat-num.danger{color:var(--red-text)}.stat-num.success{color:var(--green)}
+.stat-label{font-size:11px;color:var(--ink-4);margin-top:1px;font-weight:500}
+.sec-head{padding:4px 16px 6px;font-size:12px;font-weight:600;color:var(--ink-3);letter-spacing:.03em;text-transform:uppercase}
+.alist{padding:0 16px 8px;display:flex;flex-direction:column;gap:8px;overflow-y:auto}
+.alist::-webkit-scrollbar{width:3px}
+.alist::-webkit-scrollbar-thumb{background:var(--line);border-radius:2px}
+.acard{background:var(--white);border:1px solid var(--line);border-radius:var(--rm);padding:12px 13px;display:flex;gap:10px;align-items:flex-start;box-shadow:var(--ss);cursor:pointer;transition:transform .1s;}
+.acard:active{transform:scale(.99)}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.dot.red{background:var(--red)}.dot.yel{background:var(--orange)}.dot.grn{background:var(--green)}
+.acard-title{font-size:13px;font-weight:600;color:var(--ink);line-height:1.3}
+.acard-sub{font-size:11px;color:var(--ink-4);margin-top:2px}
+.badge{display:inline-flex;align-items:center;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;margin-top:6px;}
+.b-r{background:var(--red-bg);color:var(--red-text)}.b-y{background:var(--orange-bg);color:var(--orange-text)}.b-g{background:var(--green-bg);color:var(--green-text)}
+.acard-actions{display:flex;gap:2px;margin-left:auto;align-items:flex-start;flex-shrink:0}
+.icon-btn{padding:4px;color:var(--ink-4);border-radius:6px}
+.icon-btn i{font-size:15px}
+.fab{margin:6px 16px 8px;background:var(--blue);color:#fff;border-radius:var(--rm);padding:12px;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:7px;box-shadow:0 4px 14px rgba(74,144,217,.4);flex-shrink:0;}
+.empty-state{text-align:center;padding:28px 16px;color:var(--ink-4);font-size:13px}
+.empty-state i{font-size:32px;color:var(--line);display:block;margin-bottom:8px}
+
+/* Notifications */
+.notif-body{background:var(--surface);flex:1;display:flex;flex-direction:column;overflow-y:auto}
+.notif-list{padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.ncard{border-radius:var(--rl);padding:14px;display:flex;gap:12px;align-items:flex-start;box-shadow:var(--sm);}
+.ncard.overdue{background:linear-gradient(135deg,#D93F3F,#E8524A)}.ncard.soon{background:linear-gradient(135deg,#D98A0A,#F0A830)}
+.ncard.added{background:linear-gradient(135deg,#2060A8,#4A90D9)}.ncard.done1{background:linear-gradient(135deg,#3C7A10,#639922)}
+.ncard.done2{background:linear-gradient(135deg,#2B580E,#4A7A18)}
+.nicon{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.nicon i{font-size:18px;color:#fff}
+.ncard-title{font-size:13px;font-weight:700;color:#fff}
+.ncard-sub{font-size:11px;color:rgba(255,255,255,.8);margin-top:3px;line-height:1.45}
+.ncard-time{font-size:10px;color:rgba(255,255,255,.55);margin-top:5px}
+
+/* Detail */
+.detail-body{background:var(--surface);flex:1;display:flex;flex-direction:column;overflow-y:auto;padding-bottom:12px}
+.detail-card{margin:14px 16px 8px;background:var(--white);border:1px solid var(--line);border-radius:var(--rl);padding:16px;box-shadow:var(--sm);}
+.detail-badge{display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;margin-bottom:10px;}
+.detail-title{font-size:17px;font-weight:700;color:var(--ink);line-height:1.3;margin-bottom:4px;}
+.detail-divider{border:none;border-top:1px solid var(--line);margin:12px 0}
+.detail-row{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-3);padding:5px 0}
+.detail-row i{font-size:16px;color:var(--ink-4);flex-shrink:0}
+.detail-row span{color:var(--ink-2);font-weight:500}
+.action-btn{margin:0 16px 8px;padding:12px;border-radius:var(--rm);font-size:13px;font-weight:700;text-align:center;cursor:pointer;border:none;display:block;width:calc(100% - 32px);}
+.btn-done{background:var(--green);color:#fff;box-shadow:0 3px 12px rgba(91,155,30,.35)}
+.btn-done.is-done{background:var(--ink-4);box-shadow:none}
+.btn-edit{background:var(--blue);color:#fff}
+.btn-del{background:var(--red-bg);color:var(--red-text);border:1px solid #FBCECE !important}
+.toast{margin:0 16px 8px;border-radius:var(--rs);padding:10px 13px;font-size:12px;font-weight:500;text-align:center;display:none;}
+.toast.show{display:block;background:var(--green-bg);color:var(--green-text);border:1px solid var(--green-bg)}
+
+/* Add */
+.add-body{background:var(--surface);flex:1;display:flex;flex-direction:column;overflow-y:auto}
+.form-wrap{padding:14px 16px;display:flex;flex-direction:column;gap:12px;flex:1}
+.fg{display:flex;flex-direction:column;gap:5px}
+.flbl{font-size:11px;font-weight:600;color:var(--ink-3);letter-spacing:.03em;text-transform:uppercase}
+.finput{background:var(--white);border:1px solid var(--line);border-radius:var(--rs);padding:10px 12px;font-size:13px;color:var(--ink);box-shadow:var(--ss);width:100%;}
+.finput:focus{border-color:var(--blue);outline:none}
+.prio-row{display:flex;gap:6px}
+.pb{flex:1;padding:8px 4px;border-radius:var(--rs);border:1px solid var(--line);background:var(--white);font-size:11px;font-weight:600;cursor:pointer;text-align:center;color:var(--ink-3);}
+.pb.sel-h{background:var(--red-bg);color:var(--red-text);border-color:#FBCECE}
+.pb.sel-m{background:var(--orange-bg);color:var(--orange-text);border-color:#FAD08E}
+.pb.sel-l{background:var(--green-bg);color:var(--green-text);border-color:#C4DFA4}
+.save-btn{margin:4px 16px 14px;background:var(--blue);color:#fff;font-size:14px;font-weight:700;padding:13px;border-radius:var(--rm);box-shadow:0 4px 14px rgba(74,144,217,.4);flex-shrink:0;border:none;cursor:pointer;}
+
+/* Profile */
+.prof-body{background:var(--surface);flex:1;display:flex;flex-direction:column;overflow-y:auto}
+.prof-hero{background:linear-gradient(160deg,#2060B4,#4A90D9);padding:22px 18px 20px;display:flex;flex-direction:column;align-items:center;}
+.prof-av{width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,.22);border:2px solid rgba(255,255,255,.35);font-size:22px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;margin-bottom:10px;}
+.prof-name{font-size:16px;font-weight:700;color:#fff}
+.prof-course{font-size:11px;color:rgba(255,255,255,.65);margin-top:3px}
+.prof-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:rgba(255,255,255,.15);border-radius:var(--rm);overflow:hidden;margin-top:14px;width:100%;}
+.ps{padding:10px 4px;background:rgba(255,255,255,.1);text-align:center}
+.ps-n{font-size:18px;font-weight:700;color:#fff}
+.ps-l{font-size:10px;color:rgba(255,255,255,.6);margin-top:2px;text-transform:uppercase;letter-spacing:.04em}
+.menu{padding:12px 16px;display:flex;flex-direction:column;gap:6px}
+.mi{background:var(--white);border-radius:var(--rm);border:1px solid var(--line);padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:var(--ss);cursor:pointer;}
+.mi-icon{width:32px;height:32px;border-radius:9px;background:var(--blue-light);display:flex;align-items:center;justify-content:center;color:var(--blue-dark);flex-shrink:0;}
+.mi-icon i{font-size:16px}
+.mi-text{font-size:13px;font-weight:500;color:var(--ink);flex:1}
+
+/* Modal */
+.modal-bg{position:absolute;inset:0;background:rgba(17,24,39,.5);display:none;align-items:flex-end;z-index:50;}
+.modal-bg.show{display:flex}
+.modal{background:var(--white);border-radius:var(--rxl) var(--rxl) 0 0;padding:18px 16px 28px;width:100%;box-shadow:0 -8px 32px rgba(0,0,0,.1);}
+.modal-handle{width:40px;height:4px;background:var(--line);border-radius:2px;margin:0 auto 14px}
+.modal-title{font-size:15px;font-weight:700;color:var(--ink);text-align:center;margin-bottom:14px;}
+.mfg{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.mflbl{font-size:11px;font-weight:600;color:var(--ink-3);letter-spacing:.03em;text-transform:uppercase}
+.mfinput{background:var(--surface);border:1px solid var(--line);border-radius:var(--rs);padding:9px 12px;font-size:13px;color:var(--ink);width:100%;}
+.mprio{display:flex;gap:6px;margin-bottom:14px}
+.mpb{flex:1;padding:7px 4px;border-radius:var(--rs);border:1px solid var(--line);background:var(--white);font-size:11px;font-weight:600;cursor:pointer;text-align:center;color:var(--ink-3);}
+.mpb.sh{background:var(--red-bg);color:var(--red-text);border-color:#FBCECE}
+.mpb.sm{background:var(--orange-bg);color:var(--orange-text);border-color:#FAD08E}
+.mpb.sl{background:var(--green-bg);color:var(--green-text);border-color:#C4DFA4}
+.mbtns{display:flex;gap:8px}
+.mbtn-c{flex:1;padding:11px;border-radius:var(--rs);border:1px solid var(--line);background:var(--surface);font-size:13px;font-weight:600;color:var(--ink-3);cursor:pointer;}
+.mbtn-s{flex:1;padding:11px;border-radius:var(--rs);background:var(--blue);font-size:13px;font-weight:700;color:#fff;border:none;cursor:pointer;}
+</style>
+</head>
+<body>
+<button class="dm-toggle" id="dm-btn" onclick="toggleDark()">🌙 Dark Mode</button>
+<div class="page">
+  <div class="screen-label" id="slabel">Screen 1 — Login</div>
+  <div class="phone">
+    <div class="status-bar" id="status-bar">
+      <span class="status-time" id="status-time">9:41</span>
+      <div class="status-icons">
+        <i class="ti ti-wifi"></i>
+        <i class="ti ti-battery-2"></i>
+      </div>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="screen active" id="s-login">
+      <div class="login-bg">
+        <div class="logo-ring"><i class="ti ti-notebook"></i></div>
+        <div class="app-name">TaskMate</div>
+        <div class="app-sub">Stay on top of your deadlines</div>
+        <div class="lform">
+          <div class="field-group">
+            <div class="field-label">Username</div>
+            <input class="field-input" type="text" placeholder="Enter username" id="l-user" autocomplete="off">
+          </div>
+          <div class="field-group">
+            <div class="field-label">Password</div>
+            <div class="pass-wrap">
+              <input class="field-input" type="password" placeholder="Enter password" id="l-pass">
+              <button class="eye-btn" type="button" onclick="togglePass('l-pass',this)"><i class="ti ti-eye"></i></button>
+            </div>
+          </div>
+          <div class="forgot">Forgot password?</div>
+          <button class="btn-primary" id="btn-login">Log In</button>
+          <div class="switch-hint">No account? <span id="link-signup">Sign up here</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIGN UP -->
+    <div class="screen" id="s-signup">
+      <div class="login-bg" style="padding-top:24px">
+        <div class="logo-ring"><i class="ti ti-notebook"></i></div>
+        <div class="app-name">Create Account</div>
+        <div class="app-sub" style="margin-bottom:22px">Join TaskMate today</div>
+        <div class="lform">
+          <div class="field-group">
+            <div class="field-label">Full Name</div>
+            <input class="field-input" type="text" placeholder="e.g. Maria Reyes" id="su-name" autocomplete="off">
+          </div>
+          <div class="field-group">
+            <div class="field-label">Username</div>
+            <input class="field-input" type="text" placeholder="Choose a username" id="su-user" autocomplete="off">
+            <div class="err-msg" id="su-err">Username already taken.</div>
+          </div>
+          <div class="field-group">
+            <div class="field-label">Password</div>
+            <div class="pass-wrap">
+              <input class="field-input" type="password" placeholder="At least 6 characters" id="su-pass">
+              <button class="eye-btn" type="button" onclick="togglePass('su-pass',this)"><i class="ti ti-eye"></i></button>
+            </div>
+            <div class="strength-bar"><span id="sb1"></span><span id="sb2"></span><span id="sb3"></span></div>
+            <div class="strength-label" id="strength-label"></div>
+            <div class="strength-reqs">
+              <div class="req" id="req-len"><i class="ti ti-circle"></i> At least 6 characters</div>
+              <div class="req" id="req-num"><i class="ti ti-circle"></i> Contains a number</div>
+              <div class="req" id="req-upper"><i class="ti ti-circle"></i> Contains uppercase letter</div>
+              <div class="req" id="req-special"><i class="ti ti-circle"></i> Contains special character</div>
+            </div>
+            <div class="err-msg" id="su-perr">Password must be at least 6 characters.</div>
+          </div>
+          <button class="btn-primary" id="btn-signup">Create Account</button>
+          <div class="switch-hint">Already have one? <span id="link-login">Log in</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HOME -->
+    <div class="screen" id="s-home">
+      <div class="topbar">
+        <div style="flex:1">
+          <div class="greeting" id="home-greeting">My Assignments</div>
+          <div class="greeting-sub" id="home-date"></div>
+        </div>
+
+      </div>
+      <div class="home-body">
+        <div class="search-wrap">
+          <i class="ti ti-search search-icon"></i>
+          <input class="search-box" type="text" placeholder="Search assignments…" id="search-inp">
+        </div>
+        <div class="filter-row" id="filter-row"></div>
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-num" id="stat-total">0</div><div class="stat-label">Total</div></div>
+          <div class="stat-card"><div class="stat-num danger" id="stat-due">0</div><div class="stat-label">Due soon</div></div>
+          <div class="stat-card"><div class="stat-num" id="stat-pending">0</div><div class="stat-label">Pending</div></div>
+          <div class="stat-card"><div class="stat-num success" id="stat-done">0</div><div class="stat-label">Done</div></div>
+        </div>
+        <div class="sec-head">Assignments</div>
+        <div class="alist" id="alist"></div>
+        <button class="fab" id="btn-go-add"><i class="ti ti-plus" style="font-size:16px"></i> Add Assignment</button>
+        <div class="nav-bar">
+          <button class="ni active" data-nav="home"><i class="ti ti-home"></i>Home</button>
+          <button class="ni" data-nav="add"><i class="ti ti-plus-circle"></i>Add</button>
+          <button class="ni" data-nav="notif"><i class="ti ti-bell"></i>Notif</button>
+          <button class="ni" data-nav="profile"><i class="ti ti-user"></i>Profile</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div class="screen" id="s-notif">
+      <div class="topbar">
+        <button class="back-btn" id="btn-notif-back"><i class="ti ti-arrow-left"></i> Back</button>
+        <div class="topbar-title">Notifications</div>
+      </div>
+      <div class="notif-body">
+        <div class="notif-list">
+          <div class="ncard overdue"><div class="nicon"><i class="ti ti-alert-triangle"></i></div><div><div class="ncard-title">Due Tomorrow!</div><div class="ncard-sub">UI/UX Final Prototype is due Jun 10</div><div class="ncard-time">Just now</div></div></div>
+          <div class="ncard soon"><div class="nicon"><i class="ti ti-clock"></i></div><div><div class="ncard-title">Coming Up Soon</div><div class="ncard-sub">ER Diagram due in 4 days (Jun 5)</div><div class="ncard-time">1 hour ago</div></div></div>
+          <div class="ncard added"><div class="nicon"><i class="ti ti-file-plus"></i></div><div><div class="ncard-title">Assignment Added</div><div class="ncard-sub">Network Topology Report added successfully</div><div class="ncard-time">Yesterday</div></div></div>
+          <div class="ncard done1"><div class="nicon"><i class="ti ti-circle-check"></i></div><div><div class="ncard-title">Well Done!</div><div class="ncard-sub">HTML & CSS Portfolio marked as done</div><div class="ncard-time">2 days ago</div></div></div>
+          <div class="ncard done2"><div class="nicon"><i class="ti ti-circle-check"></i></div><div><div class="ncard-title">Well Done!</div><div class="ncard-sub">Sorting Algorithms Lab marked as done</div><div class="ncard-time">3 days ago</div></div></div>
+        </div>
+        <div class="nav-bar">
+          <button class="ni" data-nav="home"><i class="ti ti-home"></i>Home</button>
+          <button class="ni" data-nav="add"><i class="ti ti-plus-circle"></i>Add</button>
+          <button class="ni active" data-nav="notif"><i class="ti ti-bell"></i>Notif</button>
+          <button class="ni" data-nav="profile"><i class="ti ti-user"></i>Profile</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADD -->
+    <div class="screen" id="s-add">
+      <div class="topbar">
+        <button class="back-btn" id="btn-add-back"><i class="ti ti-arrow-left"></i> Back</button>
+        <div class="topbar-title">Add Assignment</div>
+      </div>
+      <div class="add-body">
+        <div class="form-wrap">
+          <div class="fg"><div class="flbl">Assignment Title</div><input class="finput" type="text" id="f-title" placeholder="e.g. Lab Exercise 3"></div>
+          <div class="fg"><div class="flbl">Subject</div>
+            <select class="finput" id="f-subj">
+              <option>HCI / UI-UX</option><option>Data Structures</option><option>Database Systems</option><option>Networking</option><option>CSS / Web Design</option><option>Discrete Math</option>
+            </select>
+          </div>
+          <div class="fg"><div class="flbl">Due Date</div><input class="finput" type="date" id="f-due"></div>
+          <div class="fg"><div class="flbl">Priority</div>
+            <div class="prio-row">
+              <button class="pb" id="ph">High</button>
+              <button class="pb sel-m" id="pm">Medium</button>
+              <button class="pb" id="pl">Low</button>
+            </div>
+          </div>
+          <div class="fg"><div class="flbl">Notes (optional)</div><input class="finput" type="text" placeholder="Add any notes…"></div>
+        </div>
+        <button class="save-btn" id="btn-save">Save Assignment</button>
+        <div class="nav-bar">
+          <button class="ni" data-nav="home"><i class="ti ti-home"></i>Home</button>
+          <button class="ni active" data-nav="add"><i class="ti ti-plus-circle"></i>Add</button>
+          <button class="ni" data-nav="notif"><i class="ti ti-bell"></i>Notif</button>
+          <button class="ni" data-nav="profile"><i class="ti ti-user"></i>Profile</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DETAIL -->
+    <div class="screen" id="s-detail">
+      <div class="topbar">
+        <button class="back-btn" id="btn-detail-back"><i class="ti ti-arrow-left"></i> Back</button>
+        <div class="topbar-title">Assignment Detail</div>
+      </div>
+      <div class="detail-body">
+        <div class="detail-card">
+          <div class="detail-badge" id="d-badge"></div>
+          <div class="detail-title" id="d-title"></div>
+          <hr class="detail-divider">
+          <div class="detail-row"><i class="ti ti-book-2"></i><span id="d-subj"></span></div>
+          <div class="detail-row"><i class="ti ti-calendar-due"></i><span id="d-due"></span></div>
+          <div class="detail-row"><i class="ti ti-flag-3"></i><span id="d-prio"></span> priority</div>
+        </div>
+        <div class="toast" id="done-toast">✓ Marked as done!</div>
+        <button class="action-btn btn-done" id="done-btn">Mark as Done</button>
+        <button class="action-btn btn-edit" id="btn-open-edit">Edit Assignment</button>
+        <button class="action-btn btn-del" id="btn-delete">Delete Assignment</button>
+        <div class="nav-bar">
+          <button class="ni" data-nav="home"><i class="ti ti-home"></i>Home</button>
+          <button class="ni" data-nav="add"><i class="ti ti-plus-circle"></i>Add</button>
+          <button class="ni" data-nav="notif"><i class="ti ti-bell"></i>Notif</button>
+          <button class="ni" data-nav="profile"><i class="ti ti-user"></i>Profile</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="screen" id="s-profile">
+      <div class="topbar">
+        <button class="back-btn" id="btn-profile-back"><i class="ti ti-arrow-left"></i> Back</button>
+        <div class="topbar-title">Profile</div>
+      </div>
+      <div class="prof-body">
+        <div class="prof-hero">
+          <div class="prof-av" id="prof-av">MR</div>
+          <div class="prof-name" id="prof-name">Maria Reyes</div>
+          <div class="prof-course" id="prof-course">BSIT · 2nd Year</div>
+          <div class="prof-stats">
+            <div class="ps"><div class="ps-n" id="ps-total">0</div><div class="ps-l">Total</div></div>
+            <div class="ps"><div class="ps-n" id="ps-done">0</div><div class="ps-l">Done</div></div>
+            <div class="ps"><div class="ps-n" id="ps-pend">0</div><div class="ps-l">Pending</div></div>
+          </div>
+        </div>
+        <div class="menu">
+          <div class="mi" id="mi-notif"><div class="mi-icon"><i class="ti ti-bell"></i></div><div class="mi-text">Notifications</div><i class="ti ti-chevron-right" style="color:#bbb;font-size:14px"></i></div>
+          <div class="mi"><div class="mi-icon"><i class="ti ti-palette"></i></div><div class="mi-text">Appearance</div><i class="ti ti-chevron-right" style="color:#bbb;font-size:14px"></i></div>
+          <div class="mi"><div class="mi-icon"><i class="ti ti-lock"></i></div><div class="mi-text">Change Password</div><i class="ti ti-chevron-right" style="color:#bbb;font-size:14px"></i></div>
+          <div class="mi" id="mi-logout"><div class="mi-icon" style="background:var(--red-bg);color:var(--red-text)"><i class="ti ti-logout"></i></div><div class="mi-text" style="color:var(--red-text)">Log Out</div></div>
+        </div>
+        <div class="nav-bar">
+          <button class="ni" data-nav="home"><i class="ti ti-home"></i>Home</button>
+          <button class="ni" data-nav="add"><i class="ti ti-plus-circle"></i>Add</button>
+          <button class="ni" data-nav="notif"><i class="ti ti-bell"></i>Notif</button>
+          <button class="ni active" data-nav="profile"><i class="ti ti-user"></i>Profile</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- EDIT MODAL -->
+    <div class="modal-bg" id="edit-modal">
+      <div class="modal">
+        <div class="modal-handle"></div>
+        <div class="modal-title">Edit Assignment</div>
+        <div class="mfg"><div class="mflbl">Title</div><input class="mfinput" type="text" id="e-title"></div>
+        <div class="mfg"><div class="mflbl">Subject</div>
+          <select class="mfinput" id="e-subj">
+            <option>HCI / UI-UX</option><option>Data Structures</option><option>Database Systems</option><option>Networking</option><option>CSS / Web Design</option><option>Discrete Math</option>
+          </select>
+        </div>
+        <div class="mfg" style="margin-bottom:10px"><div class="mflbl">Due Date</div><input class="mfinput" type="date" id="e-due"></div>
+        <div class="mflbl" style="margin-bottom:6px;font-size:11px;font-weight:600;color:var(--ink-3);letter-spacing:.03em;text-transform:uppercase">Priority</div>
+        <div class="mprio">
+          <button class="mpb" id="eph">High</button>
+          <button class="mpb sm" id="epm">Medium</button>
+          <button class="mpb" id="epl">Low</button>
+        </div>
+        <div class="mbtns">
+          <button class="mbtn-c" id="btn-cancel-edit">Cancel</button>
+          <button class="mbtn-s" id="btn-save-edit">Save Changes</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+var curP = 'm', editP = 'm', curItem = null;
+var userName = 'Maria Reyes', userCourse = 'BSIT · 2nd Year';
+var activeFilter = 'all', nextId = 6;
+var clockInterval = null;
+
+var screenNames = {
+  login:'1 — Login', signup:'2 — Sign Up', home:'3 — Home',
+  notif:'4 — Notifications', add:'5 — Add Assignment',
+  detail:'Detail', profile:'Profile'
+};
+
+var assignments = [
+  {id:1,title:'UI/UX Final Prototype',subj:'HCI / UI-UX',due:'2026-06-10',prio:'h',done:false},
+  {id:2,title:'ER Diagram — School System',subj:'Database Systems',due:'2026-06-05',prio:'m',done:false},
+  {id:3,title:'Network Topology Report',subj:'Networking',due:'2026-06-08',prio:'l',done:false},
+  {id:4,title:'HTML & CSS Portfolio',subj:'CSS / Web Design',due:'2026-05-31',prio:'l',done:true},
+  {id:5,title:'Sorting Algorithms Lab',subj:'Data Structures',due:'2026-06-02',prio:'m',done:false},
+];
+
+var filters = ['all','pending','done','high','medium','low'];
+var filterLabels = {all:'All',pending:'Pending',done:'Done',high:'High',medium:'Medium',low:'Low'};
+
+function fmtDue(d) {
+  var dt = new Date(d + 'T00:00:00');
+  var today = new Date(); today.setHours(0,0,0,0);
+  var diff = Math.round((dt - today) / 86400000);
+  if (diff < 0)  return {dot:'red', badge:'b-r', badgeText:'Overdue'};
+  if (diff === 0) return {dot:'red', badge:'b-r', badgeText:'Due Today'};
+  if (diff === 1) return {dot:'red', badge:'b-r', badgeText:'Due Tomorrow'};
+  if (diff <= 4)  return {dot:'yel', badge:'b-y', badgeText:'Due Soon'};
+  return {dot:'grn', badge:'b-g', badgeText:'On Track'};
+}
+function prioLabel(p) { return p==='h'?'High':p==='m'?'Medium':'Low'; }
+
+function updateClock() {
+  var now = new Date();
+  var time = now.toLocaleTimeString('en-PH', {hour:'numeric', minute:'2-digit', hour12:true});
+  var date = now.toLocaleDateString('en-PH', {weekday:'long', month:'long', day:'numeric'});
+  var el = document.getElementById('home-date');
+  if (el) el.textContent = time + ' · ' + date;
+  var st = document.getElementById('status-time');
+  if (st) st.textContent = now.toLocaleTimeString('en-PH', {hour:'numeric', minute:'2-digit', hour12:false});
+}
+
+function startClock() {
+  updateClock();
+  if (clockInterval) clearInterval(clockInterval);
+  clockInterval = setInterval(updateClock, 1000);
+}
+
+function go(id) {
+  document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+  var target = document.getElementById('s-' + id);
+  if (target) target.classList.add('active');
+  var lbl = document.getElementById('slabel');
+  if (lbl && screenNames[id]) lbl.textContent = 'Screen ' + screenNames[id];
+  var sb = document.getElementById('status-bar');
+  if (sb) sb.style.display = id === 'home' ? 'none' : 'flex';
+  if (id === 'home') renderList();
+  if (id === 'notif') { var nd = document.getElementById('notif-dot'); if(nd) nd.style.display='none'; }
+  if (id === 'profile') updateProfile();
+}
+
+function buildFilters() {
+  var el = document.getElementById('filter-row');
+  if (!el) return;
+  el.innerHTML = filters.map(function(f) {
+    return '<div class="chip' + (activeFilter===f?' active':'') + '" data-filter="' + f + '">' + filterLabels[f] + '</div>';
+  }).join('');
+  el.querySelectorAll('.chip').forEach(function(chip) {
+    chip.addEventListener('click', function() {
+      activeFilter = chip.getAttribute('data-filter');
+      buildFilters();
+      renderList();
+    });
+  });
+}
+
+function renderList() {
+  buildFilters();
+  var q = (document.getElementById('search-inp').value || '').toLowerCase();
+  var today = new Date(); today.setHours(0,0,0,0);
+  var vis = assignments.filter(function(a) {
+    if (activeFilter==='pending' && a.done) return false;
+    if (activeFilter==='done' && !a.done) return false;
+    if (activeFilter==='high' && a.prio!=='h') return false;
+    if (activeFilter==='medium' && a.prio!=='m') return false;
+    if (activeFilter==='low' && a.prio!=='l') return false;
+    if (q && !a.title.toLowerCase().includes(q) && !a.subj.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  document.getElementById('stat-total').textContent = assignments.length;
+  document.getElementById('stat-pending').textContent = assignments.filter(function(a){return !a.done;}).length;
+  document.getElementById('stat-done').textContent = assignments.filter(function(a){return a.done;}).length;
+  document.getElementById('stat-due').textContent = assignments.filter(function(a){
+    if (a.done) return false;
+    return Math.round((new Date(a.due+'T00:00:00') - today) / 86400000) <= 4;
+  }).length;
+  document.getElementById('home-greeting').textContent = 'Hi, ' + userName.split(' ')[0] + '! 👋';
+  updateClock();
+  var list = document.getElementById('alist');
+  if (!vis.length) {
+    list.innerHTML = '<div class="empty-state"><i class="ti ti-inbox"></i>No assignments found.</div>';
+    return;
+  }
+  list.innerHTML = vis.map(function(a) {
+    var f = a.done ? {dot:'grn', badge:'b-g', badgeText:'Done'} : fmtDue(a.due);
+    return '<div class="acard" data-id="' + a.id + '" style="' + (a.done?'opacity:.55':'') + '">' +
+      '<div class="dot ' + f.dot + '"></div>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div class="acard-title" style="' + (a.done?'text-decoration:line-through;color:var(--ink-3)':'') + '">' + a.title + '</div>' +
+        '<div class="acard-sub">' + a.subj + '</div>' +
+        '<span class="badge ' + f.badge + '">' + f.badgeText + '</span>' +
+      '</div>' +
+      '<div class="acard-actions">' +
+        '<button class="icon-btn edit-btn-card" data-id="' + a.id + '"><i class="ti ti-edit"></i></button>' +
+        '<button class="icon-btn del-btn-card" data-id="' + a.id + '"><i class="ti ti-trash"></i></button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+  list.querySelectorAll('.acard').forEach(function(card) {
+    card.addEventListener('click', function(e) {
+      if (e.target.closest('.acard-actions')) return;
+      showDetail(parseInt(card.getAttribute('data-id')));
+    });
+  });
+  list.querySelectorAll('.edit-btn-card').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      quickEdit(parseInt(btn.getAttribute('data-id')));
+    });
+  });
+  list.querySelectorAll('.del-btn-card').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      assignments.splice(assignments.findIndex(function(a){return a.id===parseInt(btn.getAttribute('data-id'));}), 1);
+      renderList();
+    });
+  });
+}
+
+function showDetail(id) {
+  curItem = assignments.find(function(a){return a.id===id;});
+  var f = curItem.done ? {badge:'b-g', badgeText:'Done'} : fmtDue(curItem.due);
+  document.getElementById('d-badge').className = 'detail-badge ' + f.badge;
+  document.getElementById('d-badge').textContent = f.badgeText;
+  document.getElementById('d-title').textContent = curItem.title;
+  document.getElementById('d-subj').textContent = curItem.subj;
+  document.getElementById('d-due').textContent = new Date(curItem.due+'T00:00:00').toLocaleDateString('en-PH',{weekday:'long',month:'long',day:'numeric'});
+  document.getElementById('d-prio').textContent = prioLabel(curItem.prio);
+  var btn = document.getElementById('done-btn');
+  btn.className = 'action-btn btn-done' + (curItem.done ? ' is-done' : '');
+  btn.textContent = curItem.done ? 'Already Done' : 'Mark as Done';
+  document.getElementById('done-toast').className = 'toast';
+  go('detail');
+}
+
+function quickEdit(id) {
+  curItem = assignments.find(function(a){return a.id===id;});
+  showDetail(id);
+  setTimeout(openEdit, 80);
+}
+
+function openEdit() {
+  if (!curItem) return;
+  document.getElementById('e-title').value = curItem.title;
+  document.getElementById('e-subj').value = curItem.subj;
+  document.getElementById('e-due').value = curItem.due;
+  editP = curItem.prio; selEditPrio(editP);
+  document.getElementById('edit-modal').classList.add('show');
+}
+
+function closeEdit() { document.getElementById('edit-modal').classList.remove('show'); }
+
+function selPrio(p) {
+  curP = p;
+  document.getElementById('ph').className = 'pb' + (p==='h'?' sel-h':'');
+  document.getElementById('pm').className = 'pb' + (p==='m'?' sel-m':'');
+  document.getElementById('pl').className = 'pb' + (p==='l'?' sel-l':'');
+}
+
+function selEditPrio(p) {
+  editP = p;
+  document.getElementById('eph').className = 'mpb' + (p==='h'?' sh':'');
+  document.getElementById('epm').className = 'mpb' + (p==='m'?' sm':'');
+  document.getElementById('epl').className = 'mpb' + (p==='l'?' sl':'');
+}
+
+function updateProfile() {
+  document.getElementById('prof-name').textContent = userName;
+  document.getElementById('prof-course').textContent = userCourse;
+  document.getElementById('prof-av').textContent = userName.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+  var done = assignments.filter(function(a){return a.done;}).length;
+  document.getElementById('ps-total').textContent = assignments.length;
+  document.getElementById('ps-done').textContent = done;
+  document.getElementById('ps-pend').textContent = assignments.length - done;
+}
+
+// ── Wire up all buttons ───────────────────────────
+
+document.getElementById('btn-login').addEventListener('click', function() {
+  var u = document.getElementById('l-user').value.trim();
+  if (!u) { alert('Please enter a username.'); return; }
+  userName = u.charAt(0).toUpperCase() + u.slice(1);
+  userCourse = 'BSIT · 2nd Year';
+  startClock();
+  go('home');
+});
+
+document.getElementById('link-signup').addEventListener('click', function() { go('signup'); });
+document.getElementById('link-login').addEventListener('click', function() { go('login'); });
+
+document.getElementById('btn-signup').addEventListener('click', function() {
+  var name = document.getElementById('su-name').value.trim();
+  var user = document.getElementById('su-user').value.trim();
+  var pass = document.getElementById('su-pass').value;
+  document.getElementById('su-err').className = 'err-msg';
+  document.getElementById('su-perr').className = 'err-msg';
+  if (!name || !user) { alert('Please fill in all fields.'); return; }
+  if (pass.length < 6) { document.getElementById('su-perr').className = 'err-msg show'; return; }
+  if (user === 'admin') { document.getElementById('su-err').className = 'err-msg show'; return; }
+  userName = name; userCourse = 'BSIT Student';
+  startClock();
+  go('home');
+});
+
+document.getElementById('btn-go-add').addEventListener('click', function() { go('add'); });
+document.getElementById('btn-notif-back').addEventListener('click', function() { go('home'); });
+document.getElementById('btn-add-back').addEventListener('click', function() { go('home'); });
+document.getElementById('btn-detail-back').addEventListener('click', function() { go('home'); });
+document.getElementById('btn-profile-back').addEventListener('click', function() { go('home'); });
+document.getElementById('mi-notif').addEventListener('click', function() { go('notif'); });
+document.getElementById('mi-logout').addEventListener('click', function() { go('login'); });
+
+document.getElementById('ph').addEventListener('click', function() { selPrio('h'); });
+document.getElementById('pm').addEventListener('click', function() { selPrio('m'); });
+document.getElementById('pl').addEventListener('click', function() { selPrio('l'); });
+document.getElementById('eph').addEventListener('click', function() { selEditPrio('h'); });
+document.getElementById('epm').addEventListener('click', function() { selEditPrio('m'); });
+document.getElementById('epl').addEventListener('click', function() { selEditPrio('l'); });
+
+document.getElementById('btn-save').addEventListener('click', function() {
+  var t = document.getElementById('f-title').value.trim();
+  var d = document.getElementById('f-due').value;
+  if (!t) { alert('Please enter a title.'); return; }
+  if (!d) { alert('Please pick a due date.'); return; }
+  assignments.unshift({id:nextId++, title:t, subj:document.getElementById('f-subj').value, due:d, prio:curP, done:false});
+  document.getElementById('f-title').value = '';
+  document.getElementById('f-due').value = '';
+  selPrio('m');
+  go('home');
+});
+
+document.getElementById('done-btn').addEventListener('click', function() {
+  if (!curItem || curItem.done) return;
+  curItem.done = true;
+  document.getElementById('done-btn').className = 'action-btn btn-done is-done';
+  document.getElementById('done-btn').textContent = 'Already Done';
+  document.getElementById('done-toast').className = 'toast show';
+});
+
+document.getElementById('btn-open-edit').addEventListener('click', openEdit);
+
+document.getElementById('btn-delete').addEventListener('click', function() {
+  if (!curItem) return;
+  assignments.splice(assignments.findIndex(function(a){return a.id===curItem.id;}), 1);
+  go('home');
+});
+
+document.getElementById('btn-cancel-edit').addEventListener('click', closeEdit);
+document.getElementById('edit-modal').addEventListener('click', function(e) { if(e.target===this) closeEdit(); });
+
+document.getElementById('btn-save-edit').addEventListener('click', function() {
+  if (!curItem) return;
+  curItem.title = document.getElementById('e-title').value || curItem.title;
+  curItem.subj = document.getElementById('e-subj').value;
+  curItem.due = document.getElementById('e-due').value || curItem.due;
+  curItem.prio = editP;
+  closeEdit();
+  showDetail(curItem.id);
+});
+
+document.querySelectorAll('[data-nav]').forEach(function(btn) {
+  btn.addEventListener('click', function() { go(btn.getAttribute('data-nav')); });
+});
+
+document.getElementById('search-inp').addEventListener('input', renderList);
+
+// ── Dark Mode ─────────────────────────────────────
+function toggleDark() {
+  var isDark = document.documentElement.classList.toggle('dark-mode');
+  document.getElementById('dm-btn').innerHTML = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
+}
+
+// ── Show/Hide Password ────────────────────────────
+function togglePass(inputId, btn) {
+  var inp = document.getElementById(inputId);
+  var icon = btn.querySelector('i');
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    icon.className = 'ti ti-eye-off';
+  } else {
+    inp.type = 'password';
+    icon.className = 'ti ti-eye';
+  }
+}
+
+
+// ── Password Strength ─────────────────────────────
+document.getElementById('su-pass').addEventListener('input', function() {
+  var val = this.value;
+  var hasLen = val.length >= 6;
+  var hasNum = /[0-9]/.test(val);
+  var hasUpper = /[A-Z]/.test(val);
+  var hasSpecial = /[^a-zA-Z0-9]/.test(val);
+
+  function setReq(id, met) {
+    var el = document.getElementById(id);
+    el.className = met ? 'req met' : 'req';
+    el.querySelector('i').className = met ? 'ti ti-circle-check' : 'ti ti-circle';
+  }
+  setReq('req-len', hasLen);
+  setReq('req-num', hasNum);
+  setReq('req-upper', hasUpper);
+  setReq('req-special', hasSpecial);
+
+  var score = [hasLen, hasNum, hasUpper, hasSpecial].filter(Boolean).length;
+  var colors = ['','#E04B4A','#EF9F27','#5B9B1E'];
+  var labels = ['','Weak','Fair','Strong'];
+  var bars = [document.getElementById('sb1'), document.getElementById('sb2'), document.getElementById('sb3')];
+  bars[0].style.background = score >= 1 ? colors[Math.min(score,3)] : 'rgba(255,255,255,.2)';
+  bars[1].style.background = score >= 3 ? colors[Math.min(score,3)] : 'rgba(255,255,255,.2)';
+  bars[2].style.background = score >= 4 ? '#5B9B1E' : 'rgba(255,255,255,.2)';
+  document.getElementById('strength-label').textContent = val.length ? (score <= 1 ? 'Weak' : score <= 2 ? 'Fair' : score <= 3 ? 'Good' : 'Strong') : '';
+  document.getElementById('strength-label').style.color = val.length ? colors[Math.min(score,3)] : 'rgba(255,255,255,.6)';
+});
+
+renderList();
+</script>
+</body>
+</html>
